@@ -1,0 +1,98 @@
+[
+  {
+    "id": "sv-001",
+    "name": "Air Vault Retro High",
+    "brand": "Sole Vault",
+    "priceKsh": 8500,
+    "priceUsd": 65,
+    "image": "https://images.unsplash.com/photo-1552346154-21d32810aba3?w=800&q=80",
+    "category": "high-top",
+    "sizes": [40, 41, 42, 43, 44, 45],
+    "stock": 12,
+    "description": "A clean high-top silhouette with premium leather panels and a cushioned midsole."
+  },
+  {
+    "id": "sv-002",
+    "name": "Midnight Runner",
+    "brand": "Sole Vault",
+    "priceKsh": 7200,
+    "priceUsd": 55,
+    "image": "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800&q=80",
+    "category": "runner",
+    "sizes": [39, 40, 41, 42, 43, 44],
+    "stock": 8,
+    "description": "All-black running-inspired sneaker with breathable mesh and reactive foam cushioning."
+  },
+  {
+    "id": "sv-003",
+    "name": "Desert Sand Low",
+    "brand": "Sole Vault",
+    "priceKsh": 6800,
+    "priceUsd": 52,
+    "image": "https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=800&q=80",
+    "category": "low-top",
+    "sizes": [40, 41, 42, 43, 44, 45],
+    "stock": 15,
+    "description": "Warm sand-toned low-top with suede overlays and a gum sole."
+  },
+  {
+    "id": "sv-004",
+    "name": "Court Classic White",
+    "brand": "Sole Vault",
+    "priceKsh": 6200,
+    "priceUsd": 48,
+    "image": "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&q=80",
+    "category": "low-top",
+    "sizes": [38, 39, 40, 41, 42, 43, 44, 45],
+    "stock": 20,
+    "description": "The clean white court sneaker. Leather upper, minimal branding, timeless."
+  },
+  {
+    "id": "sv-005",
+    "name": "Vault Runner Gold",
+    "brand": "Sole Vault",
+    "priceKsh": 9800,
+    "priceUsd": 75,
+    "image": "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&q=80",
+    "category": "runner",
+    "sizes": [40, 41, 42, 43, 44],
+    "stock": 6,
+    "description": "Limited gold-accented runner. Knit upper, gold heel counter, premium finish."
+  },
+  {
+    "id": "sv-006",
+    "name": "Shadow High-Top",
+    "brand": "Sole Vault",
+    "priceKsh": 8200,
+    "priceUsd": 63,
+    "image": "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=800&q=80",
+    "category": "high-top",
+    "sizes": [41, 42, 43, 44, 45],
+    "stock": 10,
+    "description": "Charcoal grey high-top with blacked-out sole and tonal laces."
+  },
+  {
+    "id": "sv-007",
+    "name": "Retro Panel Low",
+    "brand": "Sole Vault",
+    "priceKsh": 7100,
+    "priceUsd": 54,
+    "image": "https://images.unsplash.com/photo-1465453869711-7e174808ace9?w=800&q=80",
+    "category": "low-top",
+    "sizes": [39, 40, 41, 42, 43, 44, 45],
+    "stock": 14,
+    "description": "Multi-panel retro low-top with contrasting color blocking."
+  },
+  {
+    "id": "sv-008",
+    "name": "Trail Grip Pro",
+    "brand": "Sole Vault",
+    "priceKsh": 9200,
+    "priceUsd": 70,
+    "image": "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=800&q=80",
+    "category": "trail",
+    "sizes": [40, 41, 42, 43, 44, 45, 46],
+    "stock": 9,
+    "description": "Rugged trail sneaker with aggressive grip outsole and reinforced toe."
+  }
+]
