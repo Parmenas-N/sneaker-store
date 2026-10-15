@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Not found — Sole Vault</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        colors: { vault: { black:'#0a0a0a', gold:'#c9a961', cream:'#f5f1e8' } },
+        fontFamily: { sans:['Inter','system-ui','sans-serif'], display:['"Space Grotesk"','Inter','sans-serif'] }
+      }}
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+</head>
+<body class="bg-vault-black text-vault-cream font-sans antialiased min-h-screen grid place-items-center px-6">
+  <div class="text-center">
+    <p class="font-display text-8xl font-bold text-vault-gold mb-4">404</p>
+    <h1 class="font-display text-3xl font-bold mb-3">This page slipped away.</h1>
+    <p class="text-vault-cream/50 mb-8">The link's broken, or the page moved.</p>
+    <a href="/" class="inline-block bg-vault-gold text-vault-black font-semibold px-6 py-3 rounded-full hover:bg-vault-cream transition">Back to home</a>
+  </div>
+</body>
+</html>
