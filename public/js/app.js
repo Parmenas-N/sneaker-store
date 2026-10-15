@@ -239,6 +239,265 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("cart-overlay")?.addEventListener("click", closeCartDrawer);
 });
 
+// ============================================
+// CHATBOT — rule-based
+// ============================================
+
+// ---------- The rules ----------
+// Each rule: { patterns: [...], reply: "...", quickReplies: [...], action?: "..." }
+// A rule fires if the user's (lowercased) message contains ANY of the patterns.
+const CHAT_RULES = [
+  {
+    intent: "greeting",
+    patterns: ["hi", "hello", "hey", "habari", "sasa", "mambo", "good morning", "good afternoon"],
+    reply: "Hi! 👋 Welcome to Sole Vault. I can help with products, prices, delivery, or connecting you to a human. What would you like?",
+    quickReplies: ["Browse sneakers", "Delivery info", "Talk to a human"],
+  },
+  {
+    intent: "browse",
+    patterns: ["browse", "shop", "products", "sneakers", "shoes", "collection", "what do you have", "catalog"],
+    reply: "We've got curated high-tops, runners, low-tops, and trail sneakers. Tap below to see the full collection.",
+    quickReplies: ["Open shop page", "Recommend something", "Talk to a human"],
+    action: "shop",
+  },
+  {
+    intent: "recommend",
+    patterns: ["recommend", "suggest", "best", "popular", "which one", "help me choose", "not sure"],
+    reply: "Here are three pairs people love right now. Tap one to see details 👇",
+    quickReplies: ["Show me bestsellers"],
+    action: "recommend",
+  },
+  {
+    intent: "price",
+    patterns: ["price", "how much", "cost", "pesa", "bei"],
+    reply: "Our sneakers range from KSh 6,200 to KSh 9,800, and we show USD prices too. Which product are you curious about?",
+    quickReplies: ["Open shop page", "Recommend something", "Talk to a human"],
+  },
+  {
+    intent: "delivery",
+    patterns: ["deliver", "delivery", "shipping", "how long", "when will", "courier", "send to", "nairobi", "mombasa"],
+    reply: "We deliver within Nairobi in 1–2 days, and countrywide in 3–5 days. Free delivery on orders above KSh 5,000. 📦",
+    quickReplies: ["Browse sneakers", "Talk to a human"],
+  },
+  {
+    intent: "payment",
+    patterns: ["pay", "payment", "mpesa", "m-pesa", "mpesa", "card", "how do i pay", "checkout"],
+    reply: "You can pay via M-Pesa on the checkout page — we send a prompt to your phone. You can also order directly on WhatsApp.",
+    quickReplies: ["Browse sneakers", "Talk to a human"],
+  },
+  {
+    intent: "returns",
+    patterns: ["return", "refund", "exchange", "wrong size", "doesn't fit", "broken"],
+    reply: "If the size isn't right, we'll exchange within 7 days — free of charge. Just keep the shoes unworn and in the box.",
+    quickReplies: ["Talk to a human", "Browse sneakers"],
+  },
+  {
+    intent: "sizes",
+    patterns: ["size", "fit", "true to size", "larger", "smaller", "eu", "uk"],
+    reply: "We use EU sizing, from 38 to 46 depending on the model. If you're between sizes, we recommend going half a size up for high-tops.",
+    quickReplies: ["Browse sneakers", "Talk to a human"],
+  },
+  {
+    intent: "authenticity",
+    patterns: ["authentic", "real", "fake", "genuine", "original", "legit"],
+    reply: "Every pair is authenticated before it leaves the vault. We don't stock replicas. Full stop. ✅",
+    quickReplies: ["Browse sneakers", "Talk to a human"],
+  },
+  {
+    intent: "stock",
+    patterns: ["in stock", "available", "still have", "sold out", "size out"],
+    reply: "Stock levels are shown on each product page. If something's out, message us on WhatsApp and we'll try to source it.",
+    quickReplies: ["Open shop page", "Talk to a human"],
+  },
+  {
+    intent: "order_status",
+    patterns: ["my order", "track", "where is my", "hasn't arrived", "delivery status"],
+    reply: "For order tracking, let's chat on WhatsApp so I can look up your specific order.",
+    quickReplies: ["Talk to a human"],
+    action: "human",
+  },
+  {
+    intent: "contact",
+    patterns: ["contact", "phone number", "email", "reach you", "location", "where are you"],
+    reply: "We're in Nairobi and we're on WhatsApp the whole day. Tap below to open a chat.",
+    quickReplies: ["Talk to a human"],
+    action: "human",
+  },
+  {
+    intent: "human",
+    patterns: ["human", "agent", "person", "someone", "staff", "call", "whatsapp", "real person"],
+    reply: "No problem — let's continue on WhatsApp so a real person can help you. 👇",
+    quickReplies: [],
+    action: "human",
+  },
+  {
+    intent: "thanks",
+    patterns: ["thank", "asante", "great", "cool", "awesome", "perfect"],
+    reply: "Anytime! Anything else I can help with?",
+    quickReplies: ["Browse sneakers", "Talk to a human"],
+  },
+  {
+    intent: "bye",
+    patterns: ["bye", "goodbye", "later", "kwaheri"],
+    reply: "See you soon! 👟",
+    quickReplies: [],
+  },
+  {
+    intent: "fallback",
+    patterns: [],
+    reply: "I'm not sure I caught that. I can help with products, prices, delivery, sizes, and payment. Or I can connect you to a human.",
+    quickReplies: ["Browse sneakers", "Talk to a human"],
+  },
+];
+
+function findMatchingRule(userMessage) {
+  const msg = userMessage.toLowerCase().trim();
+  if (!msg) return CHAT_RULES.find(r => r.intent === "fallback");
+  for (const rule of CHAT_RULES) {
+    if (rule.intent === "fallback") continue;
+    if (rule.patterns.some(p => msg.includes(p))) return rule;
+  }
+  return CHAT_RULES.find(r => r.intent === "fallback");
+}
+
+// ---------- Chat state ----------
+let _chatHistory = [];
+
+function addChatMessage(role, text, quickReplies, action) {
+  _chatHistory.push({ role, text, quickReplies, action, ts: Date.now() });
+  renderChatLog();
+}
+
+// ---------- Handlers for special actions ----------
+function handleChatAction(action) {
+  if (action === "shop") {
+    setTimeout(() => { window.location.href = "/shop.html"; }, 600);
+  } else if (action === "human") {
+    const msg = "Hi Sole Vault! I was chatting with your bot and I'd like to speak to a human.";
+    setTimeout(() => { window.open(waLink(msg), "_blank"); }, 600);
+  } else if (action === "recommend") {
+    showRecommendations();
+  }
+}
+
+async function showRecommendations() {
+  try {
+    const products = await loadProducts();
+    const picks = products.slice(0, 3);
+    const text = "Here are our top picks this week:";
+    _chatHistory.push({ role: "bot", text, ts: Date.now(), products: picks });
+    renderChatLog();
+  } catch (err) {
+    addChatMessage("bot", "Couldn't load products right now — try again in a moment.");
+  }
+}
+
+// ---------- Rendering ----------
+function renderChatLog() {
+  const log = document.getElementById("chat-log");
+  if (!log) return;
+  log.innerHTML = _chatHistory.map((m, idx) => {
+    if (m.role === "user") {
+      return `
+        <div class="flex justify-end mb-3">
+          <div class="max-w-[80%] bg-vault-gold text-vault-black rounded-2xl rounded-tr-sm px-4 py-2 text-sm">
+            ${escapeHtml(m.text)}
+          </div>
+        </div>
+      `;
+    }
+    // bot
+    const quick = (m.quickReplies || []).map(q =>
+      `<button data-quick="${escapeHtml(q)}" class="text-xs border border-vault-gold/40 text-vault-gold rounded-full px-3 py-1 hover:bg-vault-gold hover:text-vault-black transition">${escapeHtml(q)}</button>`
+    ).join(" ");
+    const products = (m.products || []).map(p => `
+      <a href="/product.html?id=${p.id}" class="flex gap-3 items-center bg-vault-black/50 hover:bg-vault-black rounded-xl p-2 mt-2 transition">
+        <img src="${p.image}" alt="${p.name}" class="w-12 h-12 object-cover rounded-lg" />
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium truncate">${escapeHtml(p.name)}</p>
+          <p class="text-xs text-vault-gold">${formatKsh(p.priceKsh)}</p>
+        </div>
+      </a>
+    `).join("");
+    return `
+      <div class="flex justify-start mb-3">
+        <div class="max-w-[85%] bg-vault-smoke text-vault-cream rounded-2xl rounded-tl-sm px-4 py-2 text-sm">
+          <div>${escapeHtml(m.text)}</div>
+          ${products}
+          ${quick ? `<div class="flex flex-wrap gap-2 mt-3">${quick}</div>` : ""}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  // Wire up quick replies
+  log.querySelectorAll("[data-quick]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const text = btn.dataset.quick;
+      handleUserMessage(text);
+    });
+  });
+
+  // Scroll to bottom
+  log.scrollTop = log.scrollHeight;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, ch => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[ch]));
+}
+
+// ---------- User input ----------
+function handleUserMessage(text) {
+  if (!text || !text.trim()) return;
+  addChatMessage("user", text.trim());
+  const rule = findMatchingRule(text);
+
+  // Short delay so it feels human
+  setTimeout(() => {
+    addChatMessage("bot", rule.reply, rule.quickReplies, rule.action);
+    if (rule.action) handleChatAction(rule.action);
+  }, 400);
+}
+
+// ---------- Panel open/close ----------
+function openChat() {
+  const panel = document.getElementById("chat-panel");
+  if (!panel) return;
+  panel.classList.remove("translate-y-full", "opacity-0", "pointer-events-none");
+  document.getElementById("chat-bubble")?.classList.add("hidden");
+
+  // Seed with greeting on first open
+  if (_chatHistory.length === 0) {
+    const greeting = CHAT_RULES.find(r => r.intent === "greeting");
+    addChatMessage("bot", greeting.reply, greeting.quickReplies);
+  }
+}
+
+function closeChat() {
+  const panel = document.getElementById("chat-panel");
+  if (!panel) return;
+  panel.classList.add("translate-y-full", "opacity-0", "pointer-events-none");
+  document.getElementById("chat-bubble")?.classList.remove("hidden");
+}
+
+// ---------- Init on every page ----------
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("chat-bubble")?.addEventListener("click", openChat);
+  document.getElementById("chat-close")?.addEventListener("click", closeChat);
+
+  const form = document.getElementById("chat-form");
+  form?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const input = document.getElementById("chat-input");
+    if (!input) return;
+    const text = input.value;
+    input.value = "";
+    handleUserMessage(text);
+  });
+});
+
 // ---------- Export ----------
 window.SV = {
   WHATSAPP_NUMBER,
@@ -250,4 +509,6 @@ window.SV = {
   getCart, addToCart, removeFromCart, updateQty,
   cartTotal, cartCount, clearCart,
   renderCartDrawer, openCartDrawer, closeCartDrawer, updateCartBadge,
+  // chatbot
+  openChat, closeChat, handleUserMessage,
 };
