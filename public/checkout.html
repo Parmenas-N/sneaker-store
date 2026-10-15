@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout — Sole Vault</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        colors: { vault: { black:'#0a0a0a', charcoal:'#161616', smoke:'#262626', gold:'#c9a961', cream:'#f5f1e8' } },
+        fontFamily: { sans:['Inter','system-ui','sans-serif'], display:['"Space Grotesk"','Inter','sans-serif'] }
+      }}
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="bg-vault-black text-vault-cream font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- NAVBAR -->
+  <header class="border-b border-white/5">
+    <nav class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+      <a href="/" class="font-display text-2xl font-bold tracking-tight">Sole<span class="text-vault-gold">Vault</span></a>
+      <a href="/shop.html" class="text-sm text-vault-cream/60 hover:text-vault-gold transition">← Continue shopping</a>
+    </nav>
+  </header>
+
+  <main class="flex-1 max-w-3xl mx-auto w-full px-6 py-12">
+
+    <div id="stage-empty" class="hidden text-center py-24">
+      <p class="text-vault-cream/50 mb-6">Your cart is empty.</p>
+      <a href="/shop.html" class="inline-block bg-vault-gold text-vault-black font-semibold px-6 py-3 rounded-full hover:bg-vault-cream transition">Browse sneakers</a>
+    </div>
+
+    <div id="stage-checkout" class="hidden">
+      <h1 class="font-display text-4xl md:text-5xl font-bold mb-2">Checkout</h1>
+      <p class="text-vault-cream/50 mb-10">Pay securely with M-Pesa. Your order ships once payment is confirmed.</p>
+
+      <!-- Order summary -->
+      <section class="bg-vault-charcoal rounded-2xl p-6 mb-8">
+        <h2 class="font-display text-xl font-semibold mb-4">Order summary</h2>
+        <div id="summary-items" class="divide-y divide-white/5"></div>
+        <div class="flex justify-between pt-4 mt-2 border-t border-white/10">
+          <span class="text-vault-cream/60">Total</span>
+          <span class="font-display text-xl font-bold text-vault-gold" id="summary-total">KSh 0</span>
+        </div>
+      </section>
+
+      <!-- Phone form -->
+      <section id="phone-section" class="bg-vault-charcoal rounded-2xl p-6 mb-8">
+        <h2 class="font-display text-xl font-semibold mb-4">M-Pesa phone number</h2>
+        <p class="text-vault-cream/50 text-sm mb-4">We'll send a payment prompt to this number. Make sure it's the phone with M-Pesa.</p>
+        <div class="flex gap-3 flex-wrap">
+          <input id="phone-input" type="tel" placeholder="07XX XXX XXX" autocomplete="tel"
+                 class="flex-1 min-w-[200px] bg-vault-black border border-white/10 focus:border-vault-gold focus:outline-none rounded-full px-5 py-3 text-vault-cream placeholder:text-vault-cream/30" />
+          <button id="pay-btn"
+                  class="bg-vault-gold text-vault-black font-semibold px-6 py-3 rounded-full hover:bg-vault-cream transition disabled:opacity-40 disabled:cursor-not-allowed">
+            Pay with M-Pesa
+          </button>
+        </div>
+        <p id="phone-error" class="hidden text-red-400 text-sm mt-3"></p>
+      </section>
+
+      <!-- Status panel -->
+      <section id="status-section" class="hidden bg-vault-charcoal rounded-2xl p-6">
+        <div id="status-pending" class="hidden text-center py-6">
+          <div class="inline-block w-12 h-12 border-4 border-vault-gold/30 border-t-vault-gold rounded-full animate-spin mb-4"></div>
+          <p class="font-display text-xl font-semibold mb-1">Check your phone</p>
+          <p class="text-vault-cream/60 text-sm">Enter your M-Pesa PIN to complete the payment.</p>
+          <p class="text-vault-cream/40 text-xs mt-4">Waiting for confirmation… <span id="poll-count">0</span></p>
+        </div>
+
+        <div id="status-success" class="hidden text-center py-6">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 text-green-400 text-3xl mb-4">✓</div>
+          <p class="font-display text-2xl font-bold mb-1">Payment successful</p>
+          <p class="text-vault-cream/60 text-sm mb-4">Thank you! We'll contact you shortly to confirm delivery.</p>
+          <div class="text-sm text-vault-cream/60 space-y-1 mb-6">
+            <p>Receipt: <span id="success-receipt" class="text-vault-cream font-mono">—</span></p>
+            <p>Amount: <span id="success-amount" class="text-vault-cream">—</span></p>
+          </div>
+          <a href="/shop.html" class="inline-block bg-vault-gold text-vault-black font-semibold px-6 py-3 rounded-full hover:bg-vault-cream transition">Back to shop</a>
+        </div>
+
+        <div id="status-failed" class="hidden text-center py-6">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20 text-red-400 text-3xl mb-4">×</div>
+          <p class="font-display text-2xl font-bold mb-1">Payment failed</p>
+          <p id="failed-reason" class="text-vault-cream/60 text-sm mb-6">The payment could not be completed.</p>
+          <button id="retry-btn" class="inline-block bg-vault-gold text-vault-black font-semibold px-6 py-3 rounded-full hover:bg-vault-cream transition">Try again</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script src="/js/app.js"></script>
+  <script>
+    // ---------- Setup ----------
+    const cart = SV.getCart();
+    const stageEmpty = document.getElementById("stage-empty");
+    const stageCheckout = document.getElementById("stage-checkout");
+    const summaryItems = document.getElementById("summary-items");
+    const summaryTotal = document.getElementById("summary-total");
+    const phoneInput = document.getElementById("phone-input");
+    const payBtn = document.getElementById("pay-btn");
+    const phoneError = document.getElementById("phone-error");
+    const statusSection = document.getElementById("status-section");
+    const statusPending = document.getElementById("status-pending");
+    const statusSuccess = document.getElementById("status-success");
+    const statusFailed = document.getElementById("status-failed");
+    const failedReason = document.getElementById("failed-reason");
+    const successReceipt = document.getElementById("success-receipt");
+    const successAmount = document.getElementById("success-amount");
+    const pollCountEl = document.getElementById("poll-count");
+    const retryBtn = document.getElementById("retry-btn");
+
+    let pollTimer = null;
+    let pollCount = 0;
+    let currentTotal = 0;
+    let currentOrderRef = "";
+
+    // ---------- Render cart or empty state ----------
+    if (!cart || cart.length === 0) {
+      stageEmpty.classList.remove("hidden");
+    } else {
+      stageCheckout.classList.remove("hidden");
+      currentTotal = cart.reduce((s, i) => s + i.priceKsh * i.qty, 0);
+      summaryItems.innerHTML = cart.map(i => `
+        <div class="flex items-center gap-4 py-3">
+          <img src="${i.image}" alt="${i.name}" class="w-14 h-14 object-cover rounded-lg bg-vault-black" />
+          <div class="flex-1 min-w-0">
+            <p class="truncate font-medium">${i.name}</p>
+            <p class="text-vault-cream/50 text-sm">Size ${i.size} · Qty ${i.qty}</p>
+          </div>
+          <p class="text-vault-gold font-semibold whitespace-nowrap">${SV.formatKsh(i.priceKsh * i.qty)}</p>
+        </div>
+      `).join("");
+      summaryTotal.textContent = SV.formatKsh(currentTotal);
+      currentOrderRef = "SV-" + Date.now().toString().slice(-6);
+    }
+
+    // ---------- Phone validation ----------
+    function validatePhone(raw) {
+      const p = String(raw).replace(/[^\d]/g, "");
+      if (!p) return { ok: false, error: "Phone number required" };
+      if (!/^(?:0\d{9}|254\d{9}|7\d{8}|1\d{8})$/.test(p)) {
+        return { ok: false, error: "Enter a valid Kenyan phone (e.g. 0712345678)" };
+      }
+      return { ok: true };
+    }
+
+    // ---------- UI state helpers ----------
+    function showStatus(which) {
+      statusSection.classList.remove("hidden");
+      statusPending.classList.add("hidden");
+      statusSuccess.classList.add("hidden");
+      statusFailed.classList.add("hidden");
+      ({ pending: statusPending, success: statusSuccess, failed: statusFailed })[which].classList.remove("hidden");
+    }
+
+    function resetToForm() {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = null;
+      pollCount = 0;
+      pollCountEl.textContent = "0";
+      statusSection.classList.add("hidden");
+      payBtn.disabled = false;
+      payBtn.textContent = "Pay with M-Pesa";
+      phoneError.classList.add("hidden");
+    }
+
+    retryBtn.addEventListener("click", resetToForm);
+
+    // ---------- Pay ----------
+    payBtn.addEventListener("click", async () => {
+      phoneError.classList.add("hidden");
+      const check = validatePhone(phoneInput.value);
+      if (!check.ok) {
+        phoneError.textContent = check.error;
+        phoneError.classList.remove("hidden");
+        return;
+      }
+
+      payBtn.disabled = true;
+      payBtn.textContent = "Sending…";
+
+      try {
+        const res = await fetch("/api/mpesa/stkpush", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: phoneInput.value,
+            amount: currentTotal,
+            accountReference: currentOrderRef,
+            description: "Sole Vault order " + currentOrderRef,
+          }),
+        });
+        const data = await res.json();
+
+        if (!data.success) {
+          throw new Error(data.error || "Failed to start payment");
+        }
+
+        // Switch to pending state, start polling
+        showStatus("pending");
+        payBtn.textContent = "Awaiting confirmation…";
+        startPolling(data.checkoutRequestId);
+
+      } catch (err) {
+        payBtn.disabled = false;
+        payBtn.textContent = "Pay with M-Pesa";
+        phoneError.textContent = err.message;
+        phoneError.classList.remove("hidden");
+      }
+    });
+
+    // ---------- Polling ----------
+    function startPolling(checkoutRequestId) {
+      if (pollTimer) clearInterval(pollTimer);
+      pollCount = 0;
+
+      const tick = async () => {
+        pollCount++;
+        pollCountEl.textContent = pollCount;
+
+        try {
+          const res = await fetch("/api/mpesa/status?checkoutRequestId=" + encodeURIComponent(checkoutRequestId));
+          const data = await res.json();
+
+          if (data.status === "success") {
+            clearInterval(pollTimer);
+            pollTimer = null;
+            successReceipt.textContent = data.receipt || "—";
+            successAmount.textContent = data.amount ? SV.formatKsh(data.amount) : "—";
+            showStatus("success");
+            SV.clearCart();
+          } else if (data.status === "failed") {
+            clearInterval(pollTimer);
+            pollTimer = null;
+            failedReason.textContent = data.resultDesc || "The payment could not be completed.";
+            showStatus("failed");
+            payBtn.disabled = false;
+            payBtn.textContent = "Pay with M-Pesa";
+          }
+          // else "pending" or "unknown" → keep polling
+        } catch (err) {
+          // Network error — keep polling, but log it
+          console.warn("poll error:", err.message);
+        }
+
+        // Give up after 40 polls (~2 minutes)
+        if (pollCount >= 40) {
+          clearInterval(pollTimer);
+          pollTimer = null;
+          failedReason.textContent = "No response from Safaricom. Check your phone and try again.";
+          showStatus("failed");
+          payBtn.disabled = false;
+          payBtn.textContent = "Pay with M-Pesa";
+        }
+      };
+
+      tick(); // immediate first poll
+      pollTimer = setInterval(tick, 3000); // then every 3s
+    }
+  </script>
+</body>
+</html>

@@ -166,14 +166,18 @@ function renderCartDrawer() {
     </div>
   `).join("");
 
-  footer.innerHTML = `
+    footer.innerHTML = `
     <div class="flex justify-between text-lg mb-4">
       <span class="text-vault-cream/60">Subtotal</span>
       <span class="font-display font-bold text-vault-gold">${formatKsh(cartTotal())}</span>
     </div>
+    <a href="/checkout.html"
+       class="block text-center bg-vault-gold text-vault-black font-semibold py-3 rounded-full hover:bg-vault-cream transition mb-2">
+      Checkout with M-Pesa
+    </a>
     <a href="${waCartLink(items)}" target="_blank" rel="noopener"
-       class="block text-center bg-[#25D366] text-white font-semibold py-3 rounded-full hover:opacity-90 transition">
-      Checkout on WhatsApp
+       class="block text-center border border-white/10 text-vault-cream font-semibold py-3 rounded-full hover:border-vault-gold hover:text-vault-gold transition">
+      Order on WhatsApp instead
     </a>
     <button data-clear-cart class="block w-full text-center text-vault-cream/40 text-sm mt-3 hover:text-red-400">Clear cart</button>
   `;
